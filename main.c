@@ -169,17 +169,30 @@ int main(void) {
     peripherals_off_after_seed();// turn off what we can
 
     while (1) {
-        // TODO: pick real values, with some reasonable constraints
-        
         // high first
         VPORTA.OUT |= PIN2_bm;   // PA2 high
         // get a new pseudo-random value for seconds to stay high
-        target_seconds = rand_range_u32(1u, 4u);
+        // Goal is a nominal 5% duty cycle high ("ON"), for battery life consideration
+        // Suppose a 10 minute (600sec) period. "OFF" = 9m30s; "ON" = 30s
+        target_seconds = rand_range_u32(2u, 30u);
         sleep_seconds(target_seconds);
-
+        // Special case for short on periods: burst of several quick cycles
+        if (2u < target_seconds < 7u) {
+            uint32_t burst_count = rand_range_u32(1u, 4u);
+            for (uint32_t i = 0; i < burst_count; i++) {
+                // low ("OFF") first
+                VPORTA.OUT &= ~PIN2_bm;
+                target_seconds = rand_range_u32(1u, 5u);
+                sleep_seconds(target_seconds);
+                // high
+                VPORTA.OUT |= PIN2_bm;
+                target_seconds = rand_range_u32(2u, 7u);
+                sleep_seconds(target_seconds);
+            }
+        }
         // low
         VPORTA.OUT &= ~PIN2_bm;   // PA2 low
-        target_seconds = rand_range_u32(5u, 20u);
+        target_seconds = rand_range_u32(180u, 780u);
         sleep_seconds(target_seconds);
 //      (Optional) Stir the RNG state a bit more from the timer
 //      to reduce any long-term patterns
