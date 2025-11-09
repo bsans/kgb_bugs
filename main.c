@@ -177,7 +177,7 @@ int main(void) {
         target_seconds = rand_range_u32(2u, 30u);
         sleep_seconds(target_seconds);
         // Special case for short on periods: burst of several quick cycles
-        if (2u < target_seconds < 7u) {
+        if ((2u < target_seconds) && (target_seconds < 7u)) {
             uint32_t burst_count = rand_range_u32(1u, 4u);
             for (uint32_t i = 0; i < burst_count; i++) {
                 // low ("OFF") first
