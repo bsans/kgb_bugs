@@ -22,7 +22,7 @@ void do_three_times(void)
         VPORTA.OUT |= PIN2_bm; // high
         _delay_ms(500);
         VPORTA.OUT &= ~PIN2_bm; // low
-        _delay_ms(500);
+        _delay_ms(400);
     }
 }
 
@@ -169,9 +169,12 @@ int main(void) {
     peripherals_off_after_seed();// turn off what we can
 
     while (1) {
-        // high first
-        VPORTA.OUT |= PIN2_bm;   // PA2 high
+        // low first
+        VPORTA.OUT &= ~PIN2_bm;   // PA2 low
         // get a new pseudo-random value for seconds to stay high
+        sleep_seconds(rand_range_u32(180u, 780u));
+        // high
+        VPORTA.OUT |= PIN2_bm;   // PA2 high
         // Goal is a nominal 5% duty cycle high ("ON"), for battery life consideration
         // Suppose a 10 minute (600sec) period. "OFF" = 9m30s; "ON" = 30s
         target_seconds = rand_range_u32(2u, 30u);
@@ -182,18 +185,13 @@ int main(void) {
             for (uint32_t i = 0; i < burst_count; i++) {
                 // low ("OFF") first
                 VPORTA.OUT &= ~PIN2_bm;
-                target_seconds = rand_range_u32(1u, 5u);
-                sleep_seconds(target_seconds);
+                sleep_seconds(rand_range_u32(1u, 5u));
                 // high
                 VPORTA.OUT |= PIN2_bm;
-                target_seconds = rand_range_u32(2u, 7u);
-                sleep_seconds(target_seconds);
+                sleep_seconds(rand_range_u32(2u, 5u));
             }
         }
-        // low
-        VPORTA.OUT &= ~PIN2_bm;   // PA2 low
-        target_seconds = rand_range_u32(180u, 780u);
-        sleep_seconds(target_seconds);
+
 //      (Optional) Stir the RNG state a bit more from the timer
 //      to reduce any long-term patterns
         TCA0.SINGLE.CTRLA = TCA_SINGLE_CLKSEL_DIV1_gc | TCA_SINGLE_ENABLE_bm;
